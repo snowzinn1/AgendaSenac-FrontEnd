@@ -1,31 +1,23 @@
 // SCREEN: só monta a tela. Dados vêm do hook, pedaços visuais vêm dos components.
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { ActionItem } from '../components/ActionItem';
+import Header from '../components/Header';
 import { InfoItem } from '../components/InfoItem';
-import { useUsuario } from '../hooks/useUsuario';
+import  useUsuario  from '../hooks/useUsuario';
 
 export default function PerfilScreen() {
-  const router = useRouter();
   const USUARIO_ID = 1; // temporário: depois virá do login
-  const { usuario, carregando, erro, recarregar } =useUsuario(USUARIO_ID);;
+  const { usuario, carregando, erro, recarregar } = useUsuario(USUARIO_ID);
 
   const sair = () => {
     // TODO: limpar token/sessão e voltar para o login
-    // router.replace('/login');
+    // router.replace('/login');  (quando usar, importe useRouter de 'expo-router')
   };
 
   return (
-    <SafeAreaView style={styles.tela} edges={['top']}>
-      <View style={styles.header}>
-        <Pressable onPress={() => router.back()} hitSlop={12}>
-          <Ionicons name="chevron-back" size={22} color="#333" />
-        </Pressable>
-        <Text style={styles.tituloHeader}>Meu Perfil</Text>
-        <View style={{ width: 22 }} />
-      </View>
+    <View style={styles.tela}>
+      <Header titulo="Meu Perfil" />
 
       <ScrollView contentContainerStyle={styles.conteudo}>
         <View style={styles.avatar}>
@@ -57,17 +49,12 @@ export default function PerfilScreen() {
           <ActionItem icone="log-out-outline" titulo="Sair da Conta" onPress={sair} />
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   tela: { flex: 1, backgroundColor: '#E5E5E5' },
-  header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: '#fff', paddingHorizontal: 20, paddingVertical: 16,
-  },
-  tituloHeader: { fontSize: 22, fontWeight: '600' },
   conteudo: { padding: 20, paddingBottom: 120 },
   avatar: {
     width: 140, height: 140, borderRadius: 70, backgroundColor: '#284066',
