@@ -4,16 +4,22 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from
 import { ActionItem } from '../components/ActionItem';
 import Header from '../components/Header';
 import { InfoItem } from '../components/InfoItem';
-import  useUsuario  from '../hooks/useUsuario';
+import useUsuario from '../hooks/useUsuario';
+import PerfilAdmin from '../screens/PerfilAdmin';
 
 export default function PerfilScreen() {
   const USUARIO_ID = 1; // temporário: depois virá do login
   const { usuario, carregando, erro, recarregar } = useUsuario(USUARIO_ID);
 
+  // O back-end define quem é admin. Confira o nome do campo no JSON que ele devolve.
+  const ehAdmin = usuario?.tipo?.toUpperCase() === 'ADMIN';
+
   const sair = () => {
     // TODO: limpar token/sessão e voltar para o login
     // router.replace('/login');  (quando usar, importe useRouter de 'expo-router')
   };
+
+  if (ehAdmin) return <PerfilAdmin usuario={usuario} />;
 
   return (
     <View style={styles.tela}>
