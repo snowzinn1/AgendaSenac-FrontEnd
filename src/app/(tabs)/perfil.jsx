@@ -1,11 +1,11 @@
 // SCREEN: só monta a tela. Dados vêm do hook, pedaços visuais vêm dos components.
 import { Ionicons } from '@expo/vector-icons';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { ActionItem } from '../components/ActionItem';
-import Header from '../components/Header';
-import { InfoItem } from '../components/InfoItem';
-import useUsuario from '../hooks/useUsuario';
-import PerfilAdmin from '../screens/PerfilAdmin';
+import { ActionItem } from '../../components/ActionItem'
+import Header from '../../components/Header';
+import { InfoItem } from '../../components/InfoItem';
+import useUsuario from '../../hooks/useUsuario';
+import PerfilAdmin from '../../screens/PerfilAdmin';
 
 export default function PerfilScreen() {
   const USUARIO_ID = 1; // temporário: depois virá do login
