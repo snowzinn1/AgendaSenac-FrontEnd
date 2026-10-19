@@ -3,7 +3,7 @@ import { useRouter } from "expo-router";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { CardHome } from "../../components/CardHome";
 import Header from "../../components/Header";
-import useUsuario from "../../hooks/useUsuario";
+import { useUsuario } from "../../hooks/useUsuario";
 
 const NOMES_DIA = [
   "Domingo",

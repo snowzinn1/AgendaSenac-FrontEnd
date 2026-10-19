@@ -1,34 +1,29 @@
-// HOOK: guarda o estado da tela (carregando, erro, dado) e chama o service.
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { buscarUsuario } from '../Services/usuarioService';
 
-export default function useUsuario(id) {
+export function useUsuario(id) {
   const [usuario, setUsuario] = useState(null);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState(null);
 
-  const carregar = async () => {
+  const carregar = useCallback(async () => {
     try {
       setCarregando(true);
       setErro(null);
-
-      const dados = await buscarUsuario(id);
-      setUsuario(dados);
+      setUsuario(await buscarUsuario(id));
     } catch (e) {
-      setErro('Não foi possível carregar o usuário.');
+      console.log('Erro ao buscar usuário:', e.message, e.config?.url);
+      setErro('Não foi possível carregar seus dados.');
     } finally {
       setCarregando(false);
     }
-  };
+  }, [id]);
 
   useEffect(() => {
     carregar();
-  }, [id]);
+  }, [carregar]);
 
-  return {
-    usuario,
-    carregando,
-    erro,
-    recarregar: carregar
-  };
+  return { usuario, carregando, erro, recarregar: carregar };
 }
+
+export default useUsuario;
