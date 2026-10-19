@@ -3,7 +3,8 @@
 import axios from 'axios';
 import Constants from 'expo-constants';
 
-const host = Constants.expoConfig?.hostUri?.split(':')[0];
+// No celular/simulador o Expo informa o IP do Mac. No navegador pode vir vazio, então usamos localhost.
+const host = Constants.expoConfig?.hostUri?.split(':')[0] ?? 'localhost';
 
 const api = axios.create({
   baseURL: __DEV__

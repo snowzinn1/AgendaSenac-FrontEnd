@@ -46,7 +46,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="reservas"
         options={{
-          title: "Reservas",
+          title: "Minhas Reservas",
           tabBarIcon: ({ focused }) => (
             <IconeAba nome="list" focused={focused} />
           ),
@@ -71,7 +71,7 @@ export default function TabsLayout() {
         }}
       />
 
-      {/* Fica dentro do grupo para manter a barra visível, mas sem aparecer como aba */}
+      Fica dentro do grupo para manter a barra visível, mas sem aparecer como aba
       <Tabs.Screen name="adicionar-quadra" options={{ href: null }} />
     </Tabs>
   );

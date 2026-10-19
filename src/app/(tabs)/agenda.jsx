@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { CardHorario } from "../../components/CardHorario";
 import Header from "../../components/Header";
+import { useRouter } from "expo-router";
 
 const NOMES_DIA = [
   "Domingo",
@@ -79,6 +80,7 @@ function paraISO(data) {
 }
 
 export default function AgendaScreen() {
+  const router = useRouter();
   const [diaSelecionado, setDiaSelecionado] = useState(paraISO(hoje));
   const [filtro, setFiltro] = useState("Todas");
 
@@ -95,7 +97,10 @@ export default function AgendaScreen() {
   };
 
   const reservar = (horario) => {
-    // TODO: criarReserva({ quadra, data: diaSelecionado, horario: horario.hora, ... })
+    router.push({
+      pathname: "/DetalhesReserva",
+      params: { horarioId: horario.id },
+    });
   };
 
   return (
