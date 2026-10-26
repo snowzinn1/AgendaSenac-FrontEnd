@@ -1,16 +1,40 @@
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { CampoTexto } from "../components/CampoTexto";
+import { useSessao } from "../Config/sessao";
+import { autenticar } from "../Services/authService";
+import { mensagemDeErro } from "../Utils/erros";
 
 export default function LoginScreen() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
+  const [carregando, setCarregando] = useState(false);
+  const [erro, setErro] = useState(null);
+  const { entrar: iniciarSessao } = useSessao();
 
-  const entrar = () => {
-    // TODO: chamar o back-end (Spring Boot) para autenticar e guardar token/sessão
-    router.replace("/");
+  const entrar = async () => {
+    if (!email.trim() || !senha) {
+      setErro("Informe e-mail e senha.");
+      return;
+    }
+    try {
+      setCarregando(true);
+      setErro(null);
+      const usuario = await autenticar(email, senha);
+      if (!usuario) {
+        setErro("E-mail ou senha incorretos.");
+        return;
+      }
+      iniciarSessao(usuario);
+      router.replace("/home");
+    } catch (e) {
+      console.log("Erro no login:", e.message, e.config?.url);
+      setErro(mensagemDeErro(e, "Não foi possível entrar. Tente novamente."));
+    } finally {
+      setCarregando(false);
+    }
   };
 
   return (
@@ -41,11 +65,18 @@ export default function LoginScreen() {
           secureTextEntry
         />
 
+        {erro && <Text style={styles.erro}>{erro}</Text>}
+
         <Pressable
           onPress={entrar}
-          style={({ pressed }) => [styles.botao, pressed && { opacity: 0.85 }]}
+          disabled={carregando}
+          style={({ pressed }) => [styles.botao, (pressed || carregando) && { opacity: 0.85 }]}
         >
-          <Text style={styles.botaoTexto}>Entrar</Text>
+          {carregando ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.botaoTexto}>Entrar</Text>
+          )}
         </Pressable>
       </View>
     </View>
@@ -79,4 +110,5 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   botaoTexto: { fontSize: 22, fontWeight: "700", color: "#fff" },
+  erro: { color: "#E53935", fontSize: 14, textAlign: "center" },
 });

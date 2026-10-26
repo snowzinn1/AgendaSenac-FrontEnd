@@ -1,12 +1,9 @@
-// HOOK: carrega as reservas do usuário, separa em próximas/histórico e expõe as ações.
-import { useCallback, useState } from 'react';
+// HOOK: carrega as reservas ATIVAS do usuário e expõe o cancelamento.
+// (Não existe mais histórico: o back apaga a reserva quando ela é concluída.)
 import { useFocusEffect } from 'expo-router';
-import {
-  cancelarReserva,
-  concluirReserva,
-  listarReservas,
-  STATUS_RESERVA,
-} from '../Services/minhasReservasService';
+import { useCallback, useState } from 'react';
+import { cancelarReserva, listarReservas, STATUS_RESERVA } from '../Services/reservaService';
+import { mensagemDeErro } from '../Utils/erros';
 
 const porDataHora = (a, b) =>
   `${a.horario.data}T${a.horario.horaInicio}`.localeCompare(`${b.horario.data}T${b.horario.horaInicio}`);
@@ -21,46 +18,42 @@ export function useReservas(usuarioId) {
     try {
       setCarregando(true);
       setErro(null);
-      const todas = await listarReservas(); // ← era reservaService.listarTodas()
-      // TODO: ideal é o back filtrar (GET /reservas/usuario/{id}); por ora filtramos aqui
-      setReservas(todas.filter((r) => r.usuario?.id === usuarioId));
+      const todas = await listarReservas();
+      // TODO: ideal é o back filtrar por usuário; por ora filtramos aqui
+      setReservas(
+        todas
+          .filter((r) => r.usuario?.id === usuarioId && r.status === STATUS_RESERVA.ATIVA)
+          .sort(porDataHora)
+      );
     } catch (e) {
       console.log('Erro ao buscar reservas:', e.message, e.config?.url);
-      setErro('Não foi possível carregar seus agendamentos.');
+      setErro(mensagemDeErro(e, 'Não foi possível carregar seus agendamentos.'));
     } finally {
       setCarregando(false);
     }
   }, [usuarioId]);
 
-useFocusEffect(
-  useCallback(() => {
-    carregar();
-  }, [carregar])
-);
+  // Recarrega sempre que a aba ganha foco (ex.: voltar depois de reservar)
+  useFocusEffect(
+    useCallback(() => {
+      carregar();
+    }, [carregar])
+  );
 
-  // Executa uma ação (cancelar/check-in) e recarrega a lista
-  const executar = async (id, acao, mensagemErro) => {
+  const cancelar = async (id) => {
     try {
       setProcessandoId(id);
       setErro(null);
-      await acao(id);
+      await cancelarReserva(id);
       await carregar();
     } catch (e) {
-      console.log('Erro na ação:', e.message, e.config?.url);
-      setErro(mensagemErro);
+      console.log('Erro ao cancelar:', e.message, e.response?.data);
+      // Mostra a mensagem do back (ex.: regra das 2 horas de antecedência)
+      setErro(mensagemDeErro(e, 'Não foi possível cancelar.'));
     } finally {
       setProcessandoId(null);
     }
   };
 
-  return {
-    proximos: reservas.filter((r) => r.status === STATUS_RESERVA.CONFIRMADA).sort(porDataHora),
-    historico: reservas.filter((r) => r.status === STATUS_RESERVA.CONCLUIDA).sort(porDataHora).reverse(),
-    carregando,
-    erro,
-    processandoId,
-    recarregar: carregar,
-    cancelar: (id) => executar(id, cancelarReserva, 'Não foi possível cancelar.'),
-    fazerCheckIn: (id) => executar(id, concluirReserva, 'Não foi possível fazer o check-in.'),
-  };
+  return { reservas, carregando, erro, processandoId, recarregar: carregar, cancelar };
 }

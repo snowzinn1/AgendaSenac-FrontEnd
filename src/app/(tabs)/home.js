@@ -3,6 +3,7 @@ import { useRouter } from "expo-router";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { CardHome } from "../../components/CardHome";
 import Header from "../../components/Header";
+import { useSessao } from "../../Config/sessao";
 import { useUsuario } from "../../hooks/useUsuario";
 
 const NOMES_DIA = [
@@ -31,8 +32,8 @@ const MESES = [
 
 export default function Home() {
   const router = useRouter();
-  const USUARIO_ID = 1; // temporário: depois virá do login
-  const { usuario } = useUsuario(USUARIO_ID);
+  const { usuario: sessao } = useSessao();
+  const { usuario } = useUsuario(sessao?.id, sessao?.tipoUsuario);
 
   const hoje = new Date();
   const data = `${NOMES_DIA[hoje.getDay()]}, ${hoje.getDate()} de ${MESES[hoje.getMonth()]}`;

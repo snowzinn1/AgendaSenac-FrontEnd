@@ -1,25 +1,13 @@
-// SCREEN: Meus Agendamentos. Monta a tela com hook + components.
-import { useState } from 'react';
+// SCREEN: Minhas Reservas. Só as reservas ativas: o back apaga a reserva depois do check-in.
 import { ActivityIndicator, Alert, FlatList, Platform, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Abas } from '../../components/Abas';
+import Header from '../../components/Header';
 import { ReservaCard } from '../../components/ReservaCard';
-import { USUARIO_ID } from '../../Config/sessao';
+import { useSessao } from '../../Config/sessao';
 import { useReservas } from '../../hooks/useReservas';
-import Header from "../../components/Header";
-
-const ABAS = [
-  { chave: 'proximos', titulo: 'Próximos' },
-  { chave: 'historico', titulo: 'Histórico' },
-];
 
 export default function ReservasScreen() {
-  const [aba, setAba] = useState('proximos');
-  const { proximos, historico, carregando, erro, processandoId, recarregar, cancelar, fazerCheckIn } =
-    useReservas(USUARIO_ID);
-
-  const lista = aba === 'proximos' ? proximos : historico;
-  const ehProximos = aba === 'proximos';
+  const { usuario } = useSessao();
+  const { reservas, carregando, erro, processandoId, recarregar, cancelar } = useReservas(usuario?.id);
 
   // Alert com botões não funciona no navegador, então usamos confirm lá
   const confirmarCancelamento = (reserva) => {
@@ -34,50 +22,39 @@ export default function ReservasScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.tela} edges={[]}>
+    <View style={styles.tela}>
       <Header titulo="Minhas Reservas" />
 
       <FlatList
-        data={lista}
+        data={reservas}
         keyExtractor={(item) => String(item.id)}
         contentContainerStyle={styles.lista}
         refreshing={carregando}
         onRefresh={recarregar}
-        ListHeaderComponent={
-          <View style={{ marginBottom: 16, gap: 12 }}>
-            <Abas opcoes={ABAS} selecionada={aba} onSelecionar={setAba} />
-            {erro && <Text style={styles.erro}>{erro}</Text>}
-          </View>
-        }
+        ListHeaderComponent={erro ? <Text style={styles.erro}>{erro}</Text> : null}
         ListEmptyComponent={
           carregando ? (
             <ActivityIndicator color="#284066" style={{ marginTop: 32 }} />
           ) : (
-            <Text style={styles.vazio}>
-              {ehProximos ? 'Nenhum agendamento confirmado.' : 'Nenhum check-in realizado ainda.'}
-            </Text>
+            <Text style={styles.vazio}>Nenhum agendamento confirmado.</Text>
           )
         }
         ItemSeparatorComponent={() => <View style={{ height: 20 }} />}
         renderItem={({ item }) => (
           <ReservaCard
             reserva={item}
-            tag={ehProximos ? 'Confirmado' : 'Concluído'}
-            mostrarAcoes={ehProximos}
             ocupado={processandoId === item.id}
-            onCheckIn={() => fazerCheckIn(item.id)}
             onCancelar={() => confirmarCancelamento(item)}
           />
         )}
       />
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   tela: { flex: 1, backgroundColor: '#E5E5E5' },
   lista: { padding: 20, paddingBottom: 120 },
-  erro: { color: '#E53935', fontSize: 14, textAlign: 'center' },
+  erro: { color: '#E53935', fontSize: 14, textAlign: 'center', marginBottom: 16 },
   vazio: { textAlign: 'center', color: '#9A9A9A', fontSize: 15, marginTop: 32 },
 });
-

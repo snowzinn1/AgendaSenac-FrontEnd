@@ -14,13 +14,13 @@ import { CampoSelect } from "../../components/CampoSelect";
 import { CampoTexto } from "../../components/CampoTexto";
 import Header from "../../components/Header";
 import { criarQuadra } from "../../Services/quadraService";
+import { mensagemDeErro } from "../../Utils/erros";
 
 const ESPORTES = ["Basquete", "Futebol", "Futsal", "Vôlei", "Tênis"];
-// rótulo exibido -> valor do enum StatusQuadra no back-end (confira os nomes no seu enum)
+// rótulo exibido -> valor do enum StatusQuadra do back-end (só existem esses dois)
 const STATUS = {
   Disponível: "DISPONIVEL",
   Indisponível: "INDISPONIVEL",
-  "Em manutenção": "MANUTENCAO",
 };
 
 export default function AdicionarQuadraScreen() {
@@ -55,7 +55,7 @@ export default function AdicionarQuadraScreen() {
       Alert.alert("Sucesso", "Quadra cadastrada!");
       router.back();
     } catch (e) {
-      Alert.alert("Erro", "Não foi possível salvar a quadra.");
+      Alert.alert("Erro", mensagemDeErro(e, "Não foi possível salvar a quadra."));
     } finally {
       setSalvando(false);
     }
