@@ -1,12 +1,16 @@
 // SCREEN (visão do admin): só monta a tela. Quem decide mostrar esta visão é o perfil.jsx.
 import { Ionicons } from '@expo/vector-icons';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { AdminCard } from '../components/AdminCard';
-import Header from '../components/Header';
+import { useRouter } from 'expo-router';
+import { ActionItem } from './ActionItem';
+import { AdminCard } from './AdminCard';
+import Header from './Header';
 
-export default function PerfilAdmin({ usuario }) {
+export default function PerfilAdmin({ usuario, onSair }) {
+  const router = useRouter();
+
   const adicionarQuadra = () => {
-    // TODO: router.push('/quadras/nova')  (importe useRouter de 'expo-router')
+    router.push('/adicionar-quadra');
   };
 
   const gerenciarQuadras = () => {
@@ -39,6 +43,10 @@ export default function PerfilAdmin({ usuario }) {
             onPress={gerenciarQuadras}
           />
         </View>
+
+        <View style={styles.card}>
+          <ActionItem icone="log-out-outline" titulo="Sair da Conta" onPress={onSair} />
+        </View>
       </ScrollView>
     </View>
   );
@@ -54,4 +62,5 @@ const styles = StyleSheet.create({
   nome: { fontSize: 24, fontWeight: '600', textAlign: 'center', marginTop: 24 },
   papel: { fontSize: 22, fontWeight: '600', color: '#A0A0A0', textAlign: 'center', marginTop: 4 },
   acoes: { gap: 16, marginTop: 40 },
+  card: { backgroundColor: '#fff', borderRadius: 24, padding: 20, marginTop: 28 },
 });

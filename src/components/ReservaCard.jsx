@@ -1,23 +1,18 @@
+// COMPONENT: card de um agendamento (foto, nome, tag, local, data, horário e botão Cancelar).
+// Recebe tudo por props: não sabe nada de API. O check-in é automático no back, não há botão.
 import { Ionicons } from '@expo/vector-icons';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
-import { checkInLiberado, formatarData, formatarHora } from '../Utils/formatadores';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { formatarData, formatarHora } from '../Utils/formatadores';
+import { FotoQuadra } from './FotoQuadra';
 
-export function ReservaCard({
-  reserva,
-  tag = 'Confirmado',
-  mostrarAcoes = true,
-  ocupado = false,
-  onCheckIn,
-  onCancelar,
-}) {
+export function ReservaCard({ reserva, tag = 'Confirmado', ocupado = false, onCancelar }) {
   const { horario } = reserva;
   const { quadra } = horario;
-  const podeCheckIn = checkInLiberado(horario) && !ocupado;
 
   return (
     <View style={styles.card}>
       <View style={styles.topo}>
-        <Image source={{ uri: quadra.foto }} style={styles.foto} />
+        <FotoQuadra foto={quadra.foto} style={styles.foto} />
         <View style={styles.topoTextos}>
           <View style={styles.linhaNome}>
             <Text style={styles.nome} numberOfLines={1}>{quadra.nome}</Text>
@@ -51,23 +46,16 @@ export function ReservaCard({
         </View>
       </View>
 
-      {mostrarAcoes && (
-        <View style={styles.acoes}>
-          <Pressable
-            style={[styles.botao, podeCheckIn ? styles.checkInAtivo : styles.checkInInativo]}
-            disabled={!podeCheckIn}
-            onPress={onCheckIn}
-          >
-            <Ionicons name="checkmark" size={16} color={podeCheckIn ? '#fff' : '#9A9A9A'} />
-            <Text style={[styles.botaoTexto, { color: podeCheckIn ? '#fff' : '#9A9A9A' }]}>Check-in</Text>
-          </Pressable>
-
-          <Pressable style={[styles.botao, styles.cancelar]} disabled={ocupado} onPress={onCancelar}>
-            <Ionicons name="close" size={16} color="#E53935" />
-            <Text style={[styles.botaoTexto, { color: '#E53935' }]}>Cancelar</Text>
-          </Pressable>
-        </View>
-      )}
+      <View style={styles.acoes}>
+        <Pressable
+          style={[styles.botao, ocupado && { opacity: 0.6 }]}
+          disabled={ocupado}
+          onPress={onCancelar}
+        >
+          <Ionicons name="close" size={16} color="#E53935" />
+          <Text style={styles.botaoTexto}>Cancelar</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -75,7 +63,7 @@ export function ReservaCard({
 const styles = StyleSheet.create({
   card: { backgroundColor: '#fff', borderRadius: 24, padding: 16 },
   topo: { flexDirection: 'row', gap: 12, alignItems: 'center' },
-  foto: { width: 72, height: 72, borderRadius: 14, backgroundColor: '#D5D5D5' },
+  foto: { width: 72, height: 72, borderRadius: 14, overflow: 'hidden' },
   topoTextos: { flex: 1, gap: 8 },
   linhaNome: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   nome: { fontSize: 16, fontWeight: '700', color: '#000', flexShrink: 1 },
@@ -91,13 +79,10 @@ const styles = StyleSheet.create({
   rotulo: { fontSize: 11, fontWeight: '600', color: '#9A9A9A' },
   valorLinha: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   valor: { fontSize: 12, fontWeight: '700', color: '#284066' },
-  acoes: { flexDirection: 'row', gap: 16, paddingTop: 12, borderTopWidth: 1, borderColor: '#E5E5E5' },
+  acoes: { paddingTop: 12, borderTopWidth: 1, borderColor: '#E5E5E5' },
   botao: {
-    flex: 1, height: 38, borderRadius: 10, flexDirection: 'row',
+    height: 38, borderRadius: 10, flexDirection: 'row', backgroundColor: '#F4AFAF',
     alignItems: 'center', justifyContent: 'center', gap: 4,
   },
-  botaoTexto: { fontSize: 13, fontWeight: '600' },
-  checkInInativo: { backgroundColor: '#E0E0E0' },
-  checkInAtivo: { backgroundColor: '#284066' },
-  cancelar: { backgroundColor: '#F4AFAF' },
+  botaoTexto: { fontSize: 13, fontWeight: '600', color: '#E53935' },
 });

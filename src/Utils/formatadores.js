@@ -9,11 +9,3 @@ export function formatarData(iso) {
 
 // "10:00:00" -> "10:00"
 export const formatarHora = (hora) => hora.slice(0, 5);
-
-// Check-in só vale no dia, entre o início e o fim do horário reservado.
-export function checkInLiberado(horario) {
-  const agora = new Date();
-  const inicio = new Date(`${horario.data}T${horario.horaInicio}`);
-  const fim = new Date(`${horario.data}T${horario.horaFim}`);
-  return agora >= inicio && agora <= fim;
-}

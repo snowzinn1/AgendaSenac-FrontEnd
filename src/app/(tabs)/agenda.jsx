@@ -1,9 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { CardHorario } from "../../components/CardHorario";
 import Header from "../../components/Header";
-import { useRouter } from "expo-router";
+import { useHorarios } from "../../hooks/useHorarios";
+import { STATUS_HORARIO } from "../../Services/HorarioService";
+import { formatarHora } from "../../Utils/formatadores";
 
 const NOMES_DIA = [
   "Domingo",
@@ -29,40 +32,11 @@ const MESES = [
   "novembro",
   "dezembro",
 ];
-const FILTROS = ["Todas", "Basquete", "Futebol"];
-
-// temporário: depois virá do back-end
-const HORARIOS = [
-  {
-    id: 1,
-    hora: "08:00",
-    nome: "Quadra de Basquete",
-    esporte: "Basquete",
-    ocupado: false,
-  },
-  {
-    id: 2,
-    hora: "09:00",
-    nome: "Quadra de Futebol",
-    esporte: "Futebol",
-    ocupado: true,
-    observacao: "Reservado/Aula Técnica",
-  },
-  {
-    id: 3,
-    hora: "10:00",
-    nome: "Quadra de Futsal",
-    esporte: "Futsal",
-    ocupado: false,
-  },
-  {
-    id: 4,
-    hora: "11:00",
-    nome: "Quadra de Futebol",
-    esporte: "Futebol",
-    ocupado: false,
-  },
-];
+// Texto do card quando o horário não está disponível
+const OBSERVACAO = {
+  [STATUS_HORARIO.RESERVADO]: "Reservado",
+  [STATUS_HORARIO.INDISPONIVEL]: "Indisponível",
+};
 
 // Monta os próximos 14 dias a partir de hoje
 const hoje = new Date();
@@ -84,13 +58,14 @@ export default function AgendaScreen() {
   const [diaSelecionado, setDiaSelecionado] = useState(paraISO(hoje));
   const [filtro, setFiltro] = useState("Todas");
 
+  const { horarios, modalidades, carregando, erro, recarregar } = useHorarios(
+    diaSelecionado,
+    filtro,
+  );
+  const filtros = ["Todas", ...modalidades];
+
   const dataEscolhida = DIAS.find((d) => paraISO(d) === diaSelecionado) ?? hoje;
   const titulo = `${NOMES_DIA[dataEscolhida.getDay()]}, ${dataEscolhida.getDate()} de ${MESES[dataEscolhida.getMonth()]}`;
-
-  // diaSelecionado (ex.: '2026-10-08') é o que vai para o back-end quando a agenda for ligada à API
-  const horarios = HORARIOS.filter(
-    (h) => filtro === "Todas" || h.esporte === filtro,
-  );
 
   const abrirFiltros = () => {
     // TODO: abrir filtros avançados
@@ -146,7 +121,7 @@ export default function AgendaScreen() {
         </ScrollView>
 
         <View style={styles.filtros}>
-          {FILTROS.map((nome) => {
+          {filtros.map((nome) => {
             const ativo = nome === filtro;
             return (
               <Pressable
@@ -163,13 +138,25 @@ export default function AgendaScreen() {
         </View>
 
         <View style={styles.lista}>
+          {carregando && <ActivityIndicator color="#284066" />}
+
+          {erro && (
+            <Pressable onPress={recarregar}>
+              <Text style={styles.erro}>{erro} Toque para tentar de novo.</Text>
+            </Pressable>
+          )}
+
+          {!carregando && !erro && horarios.length === 0 && (
+            <Text style={styles.vazio}>Nenhum horário para este dia.</Text>
+          )}
+
           {horarios.map((h) => (
             <CardHorario
               key={h.id}
-              hora={h.hora}
-              nome={h.nome}
-              ocupado={h.ocupado}
-              observacao={h.observacao}
+              hora={formatarHora(h.horaInicio)}
+              nome={h.quadra.nome}
+              ocupado={h.status !== STATUS_HORARIO.DISPONIVEL}
+              observacao={OBSERVACAO[h.status]}
               onReservar={() => reservar(h)}
             />
           ))}
@@ -205,7 +192,7 @@ const styles = StyleSheet.create({
   diaSigla: { fontSize: 12, fontWeight: "700", color: "#9A9A9A" },
   diaNumero: { fontSize: 22, fontWeight: "800", color: "#000" },
   textoClaro: { color: "#fff" },
-  filtros: { flexDirection: "row", gap: 8 },
+  filtros: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   chip: {
     paddingVertical: 6,
     paddingHorizontal: 16,
@@ -217,4 +204,6 @@ const styles = StyleSheet.create({
   chipAtivo: { backgroundColor: "#284066", borderColor: "#284066" },
   chipTexto: { fontSize: 13, fontWeight: "700", color: "#284066" },
   lista: { gap: 16, marginTop: 20 },
+  erro: { color: "#E53935", fontSize: 14, textAlign: "center" },
+  vazio: { textAlign: "center", color: "#9A9A9A", fontSize: 15, marginTop: 12 },
 });

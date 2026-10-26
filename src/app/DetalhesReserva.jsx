@@ -1,34 +1,39 @@
 // SCREEN: Detalhes da Reserva. Recebe ?horarioId=... na rota.
 import { Ionicons } from '@expo/vector-icons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
 import {
-  ActivityIndicator, Image, KeyboardAvoidingView, Platform,
+  ActivityIndicator, KeyboardAvoidingView, Platform,
   Pressable, ScrollView, StyleSheet, Text, View,
 } from 'react-native';
+import { FotoQuadra } from '../components/FotoQuadra';
 import Header from '../components/Header';
+import { ParticipanteCard } from '../components/ParticipanteCard';
+import { useSessao } from '../Config/sessao';
 import { useDetalhesReserva } from '../hooks/useDetalhesReserva';
 import useUsuario from '../hooks/useUsuario';
 import { ocultarCpf } from '../Utils/cpf';
 import { formatarData, formatarHora } from '../Utils/formatadores';
-import { ParticipanteCard } from '../components/PartipanteCard';
 
-const USUARIO_ID = 1; // temporário: depois virá do login
 
 export default function DetalhesReserva() {
   const router = useRouter();
   const { horarioId } = useLocalSearchParams();
 
-  const { usuario } = useUsuario(USUARIO_ID);
+  const { usuario: sessao } = useSessao();
+  const { usuario } = useUsuario(sessao?.id, sessao?.tipoUsuario);
   const {
     horario, carregando, erro, recarregar,
     participantes, adicionar, remover, atualizar,
     enviando, erroEnvio, confirmar,
-  } = useDetalhesReserva(horarioId, USUARIO_ID);
+  } = useDetalhesReserva(horarioId, sessao?.id);
 
   const aoConfirmar = async () => {
     const criou = await confirmar();
     if (criou) router.replace('/reservas'); // vai para Meus Agendamentos
   };
+
+  // Sem login, volta para a tela de login
+  if (!sessao) return <Redirect href="/" />;
 
   if (carregando || erro) {
     return (
@@ -57,7 +62,7 @@ export default function DetalhesReserva() {
         <ScrollView contentContainerStyle={styles.conteudo} keyboardShouldPersistTaps="handled">
           {/* Card da quadra */}
           <View style={styles.cardQuadra}>
-            <Image source={{ uri: quadra.foto }} style={styles.foto} />
+            <FotoQuadra foto={quadra.foto} style={styles.foto} />
             <View style={styles.quadraCorpo}>
               <View style={styles.linhaNome}>
                 <Text style={styles.nomeQuadra}>{quadra.nome}</Text>
@@ -155,7 +160,7 @@ const styles = StyleSheet.create({
   erro: { color: '#E53935', fontSize: 14, textAlign: 'center', marginBottom: 12 },
 
   cardQuadra: { backgroundColor: '#fff', borderRadius: 28, overflow: 'hidden' },
-  foto: { width: '100%', height: 150, backgroundColor: '#D5D5D5' },
+  foto: { width: '100%', height: 150 },
   quadraCorpo: { padding: 20, gap: 8 },
   linhaNome: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
   nomeQuadra: { fontSize: 20, fontWeight: '800', color: '#000', flexShrink: 1 },

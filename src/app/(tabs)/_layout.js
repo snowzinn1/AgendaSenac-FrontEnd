@@ -1,7 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Tabs } from "expo-router";
+import { Redirect, Tabs } from "expo-router";
 import { StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useSessao } from "../../Config/sessao";
 
 // Ícone da barra: círculo azul quando a aba está ativa
 function IconeAba({ nome, focused }) {
@@ -14,6 +15,10 @@ function IconeAba({ nome, focused }) {
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
+  const { usuario } = useSessao();
+
+  // Sem login, volta para a tela de login (rota "/")
+  if (!usuario) return <Redirect href="/" />;
 
   return (
     <Tabs
@@ -26,7 +31,7 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen
-        name="index"
+        name="home"
         options={{
           title: "Home",
           tabBarIcon: ({ focused }) => (
@@ -71,7 +76,7 @@ export default function TabsLayout() {
         }}
       />
 
-      Fica dentro do grupo para manter a barra visível, mas sem aparecer como aba
+      {/* Fica dentro do grupo para manter a barra visível, mas sem aparecer como aba */}
       <Tabs.Screen name="adicionar-quadra" options={{ href: null }} />
     </Tabs>
   );
