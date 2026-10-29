@@ -22,7 +22,7 @@ export default function Header({ titulo }) {
         {/* Logo + título (o título é o único que muda) */}
         <View style={styles.centro}>
           <Image
-            source={require('../../assets/images/AgendaSenac.png')}
+            source={require('../../assets/images/icon.png')}
             style={styles.logo}
             resizeMode="contain"
           />

@@ -40,7 +40,7 @@ export default function LoginScreen() {
   return (
     <View style={styles.tela}>
       <Image
-        source={require("../../assets/images/AgendaSenac.png")}
+        source={require("../../assets/images/icon.png")}
         style={styles.logo}
         resizeMode="contain"
       />
