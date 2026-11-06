@@ -1,24 +1,28 @@
-// AUTENTICAÇÃO (provisória).
-// O back-end ainda NÃO tem rota de login (o Spring Security está pendente), então
-// procuramos o e-mail/senha nas listas de alunos e admins. Quando existir um
-// POST /auth/login, só esta função precisa mudar.
+// AUTENTICAÇÃO via POST /auth/login (JWT).
 import api from './api';
 
-// Devolve o usuário (sem a senha) ou null se e-mail/senha não baterem.
+// Devolve o usuário (com token) ou null se e-mail/senha não baterem.
 // Se o back estiver fora do ar, lança erro (a tela mostra "sem conexão").
 export async function autenticar(email, senha) {
   const emailNormalizado = email.trim().toLowerCase();
 
-  const [alunos, admins] = await Promise.all([
-    api.get('/usuarios/comum'),
-    api.get('/usuarios/admin'),
-  ]);
+  try {
+    const resposta = await api.post('/auth/login', {
+      email: emailNormalizado,
+      senha,
+    });
 
-  const encontrado = [...alunos.data, ...admins.data].find(
-    (u) => u.email?.toLowerCase() === emailNormalizado && u.senha === senha
-  );
-  if (!encontrado) return null;
+    // Guarda o token e envia em todas as próximas chamadas
+    api.defaults.headers.common.Authorization = `Bearer ${resposta.data.token}`;
 
-  const { senha: _senha, ...semSenha } = encontrado;
-  return semSenha;
+    return resposta.data; // { id, nome, email, curso, tipoUsuario, token }
+  } catch (erro) {
+    if (erro.response?.status === 401) return null; // e-mail ou senha errados
+    throw erro; // sem conexão ou outro erro
+  }
+}
+
+// Chamar no logout
+export function sair() {
+  delete api.defaults.headers.common.Authorization;
 }

@@ -1,4 +1,6 @@
 // SCREEN: Minhas Reservas. Só as reservas ativas: o back apaga a reserva depois do check-in.
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useRef } from 'react';
 import { ActivityIndicator, Alert, FlatList, Platform, StyleSheet, Text, View } from 'react-native';
 import Header from '../../components/Header';
 import { ReservaCard } from '../../components/ReservaCard';
@@ -6,8 +8,19 @@ import { useSessao } from '../../Config/sessao';
 import { useReservas } from '../../hooks/useReservas';
 
 export default function ReservasScreen() {
+  const router = useRouter();
   const { usuario } = useSessao();
   const { reservas, carregando, erro, processandoId, recarregar, cancelar } = useReservas(usuario?.id);
+
+  // Recarrega a lista sempre que a tela volta a ficar em foco (ex.: depois de cancelar no detalhe).
+  // O ref evita loop caso o `recarregar` do hook mude a cada render.
+  const recarregarRef = useRef(recarregar);
+  recarregarRef.current = recarregar;
+  useFocusEffect(
+    useCallback(() => {
+      recarregarRef.current();
+    }, [])
+  );
 
   // Alert com botões não funciona no navegador, então usamos confirm lá
   const confirmarCancelamento = (reserva) => {
@@ -44,6 +57,7 @@ export default function ReservasScreen() {
           <ReservaCard
             reserva={item}
             ocupado={processandoId === item.id}
+            onPress={() => router.push(`/reserva/${item.id}`)}
             onCancelar={() => confirmarCancelamento(item)}
           />
         )}
@@ -58,3 +72,4 @@ const styles = StyleSheet.create({
   erro: { color: '#E53935', fontSize: 14, textAlign: 'center', marginBottom: 16 },
   vazio: { textAlign: 'center', color: '#9A9A9A', fontSize: 15, marginTop: 32 },
 });
+
