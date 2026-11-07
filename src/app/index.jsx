@@ -2,7 +2,7 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import { ActivityIndicator, Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { CampoTexto } from "../components/CampoTexto";
-import { useSessao } from "../Config/sessao";
+import { ehAdmin, useSessao } from "../Config/sessao";
 import { autenticar } from "../Services/authService";
 import { mensagemDeErro } from "../Utils/erros";
 
@@ -28,7 +28,7 @@ export default function LoginScreen() {
         return;
       }
       iniciarSessao(usuario);
-      router.replace("/home");
+      router.replace(ehAdmin(usuario) ? "/reservas" : "/home"); // admin não tem aba Home
     } catch (e) {
       console.log("Erro no login:", e.message, e.config?.url);
       setErro(mensagemDeErro(e, "Não foi possível entrar. Tente novamente."));

@@ -3,10 +3,11 @@ import { useRouter } from 'expo-router';
 import { ActivityIndicator, Alert, FlatList, Platform, StyleSheet, Text, View } from 'react-native';
 import Header from '../../components/Header';
 import { ReservaCard } from '../../components/ReservaCard';
-import { useSessao } from '../../Config/sessao';
+import ReservasAdmin from '../../components/ReservasAdmin';
+import { ehAdmin, useSessao } from '../../Config/sessao';
 import { useReservas } from '../../hooks/useReservas';
 
-export default function ReservasScreen() {
+function ReservasAluno() {
   const router = useRouter();
   const { usuario } = useSessao();
   const { reservas, carregando, erro, processandoId, recarregar, cancelar } = useReservas(usuario?.id);
@@ -62,3 +63,9 @@ const styles = StyleSheet.create({
   vazio: { textAlign: 'center', color: '#9A9A9A', fontSize: 15, marginTop: 32 },
 });
 
+// O tipo vem do login (tipoUsuario do back: ALUNO | ADMIN).
+// Cada visão tem seus próprios hooks, por isso são componentes separados.
+export default function ReservasScreen() {
+  const { usuario } = useSessao();
+  return ehAdmin(usuario) ? <ReservasAdmin /> : <ReservasAluno />;
+}

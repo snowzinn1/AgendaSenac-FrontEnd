@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Redirect, Tabs } from "expo-router";
 import { StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useSessao } from "../../Config/sessao";
+import { ehAdmin, useSessao } from "../../Config/sessao";
 
 // Ícone da barra: círculo azul quando a aba está ativa
 function IconeAba({ nome, focused }) {
@@ -20,6 +20,9 @@ export default function TabsLayout() {
   // Sem login, volta para a tela de login (rota "/")
   if (!usuario) return <Redirect href="/" />;
 
+  // Admin só vê "Minhas Reservas" (reservas do dia) e "Perfil": as outras abas somem da barra
+  const ocultoParaAdmin = ehAdmin(usuario) ? { href: null } : {};
+
   return (
     <Tabs
       screenOptions={{
@@ -34,6 +37,7 @@ export default function TabsLayout() {
         name="home"
         options={{
           title: "Home",
+          ...ocultoParaAdmin,
           tabBarIcon: ({ focused }) => (
             <IconeAba nome="home" focused={focused} />
           ),
@@ -43,6 +47,7 @@ export default function TabsLayout() {
         name="agenda"
         options={{
           title: "Agenda",
+          ...ocultoParaAdmin,
           tabBarIcon: ({ focused }) => (
             <IconeAba nome="calendar" focused={focused} />
           ),
@@ -70,6 +75,7 @@ export default function TabsLayout() {
         name="ajuda"
         options={{
           title: "Ajuda",
+          ...ocultoParaAdmin,
           tabBarIcon: ({ focused }) => (
             <IconeAba nome="help-circle-outline" focused={focused} />
           ),
