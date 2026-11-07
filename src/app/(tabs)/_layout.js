@@ -75,7 +75,6 @@ export default function TabsLayout() {
           ),
         }}
       />
-
       {/* Fica dentro do grupo para manter a barra visível, mas sem aparecer como aba */}
       <Tabs.Screen name="adicionar-quadra" options={{ href: null }} />
     </Tabs>

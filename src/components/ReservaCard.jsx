@@ -1,16 +1,19 @@
 // COMPONENT: card de um agendamento (foto, nome, tag, local, data, horário e botão Cancelar).
-// Recebe tudo por props: não sabe nada de API. O check-in é automático no back, não há botão.
+// Recebe tudo por props: não sabe nada de API nem de rota. O check-in é automático no back, não há botão.
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { formatarData, formatarHora } from '../Utils/formatadores';
 import { FotoQuadra } from './FotoQuadra';
 
-export function ReservaCard({ reserva, tag = 'Confirmado', ocupado = false, onCancelar }) {
+export function ReservaCard({ reserva, tag = 'Confirmado', ocupado = false, onCancelar, onPress }) {
   const { horario } = reserva;
   const { quadra } = horario;
 
   return (
-    <View style={styles.card}>
+    <Pressable
+      style={({ pressed }) => [styles.card, pressed && styles.pressionado]}
+      onPress={onPress}
+    >
       <View style={styles.topo}>
         <FotoQuadra foto={quadra.foto} style={styles.foto} />
         <View style={styles.topoTextos}>
@@ -56,12 +59,13 @@ export function ReservaCard({ reserva, tag = 'Confirmado', ocupado = false, onCa
           <Text style={styles.botaoTexto}>Cancelar</Text>
         </Pressable>
       </View>
-    </View>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   card: { backgroundColor: '#fff', borderRadius: 24, padding: 16 },
+  pressionado: { opacity: 0.9 },
   topo: { flexDirection: 'row', gap: 12, alignItems: 'center' },
   foto: { width: 72, height: 72, borderRadius: 14, overflow: 'hidden' },
   topoTextos: { flex: 1, gap: 8 },

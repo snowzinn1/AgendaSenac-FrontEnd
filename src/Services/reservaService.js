@@ -39,3 +39,10 @@ export async function removerReserva(id) {
 export async function adicionarParticipante(reservaId, participante) {
   await api.post(`/reservas/${reservaId}/participantes`, participante);
 }
+
+// Participantes de UMA reserva (além do responsável).
+// ATENÇÃO: confirme esta rota no ReservaController. Se ela não existir, a tela mostra só o responsável.
+export async function listarParticipantes(reservaId) {
+  const { data } = await api.get(`/reservas/${reservaId}/participantes`);
+  return data;
+}
