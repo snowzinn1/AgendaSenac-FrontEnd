@@ -1,22 +1,33 @@
-// SCREEN: detalhe da reserva. Dados vêm do hook, pedaços visuais vêm dos components.
+// SCREEN: detalhe da reserva. Recebe o id na rota: /reserva/<id>.
+// Dados vêm do hook, pedaços visuais vêm dos components.
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
+import { ActivityIndicator, Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CodigoAcessoCard } from '../../components/CodigoAcessoCard';
 import Header from '../../components/Header';
 import { ParticipantesCard } from '../../components/ParticipantesCard';
 import { QuadraResumoCard } from '../../components/QuadraResumoCard';
 import { ReservaStatusBanner } from '../../components/ReservaStatusBanner';
-import useReserva from '../../hooks/useQuadraReservada';
+import { useSessao } from '../../Config/sessao';
+import useQuadraReservada from '../../hooks/useQuadraReservada';
 
 export default function ReservaDetalheScreen() {
-  const { id } = useLocalSearchParams();
+  const { idr } = useLocalSearchParams(); // o nome do parâmetro é o nome do arquivo: [idr]
   const router = useRouter();
-  const { reserva, carregando, erro, recarregar, podeCancelar, cancelando, cancelar } = useReserva(id);
+  const insets = useSafeAreaInsets();
+  const { usuario: sessao } = useSessao();
+  const {
+    reserva, participantes, carregando, erro, recarregar,
+    podeCancelar, cancelando, cancelar,
+  } = useQuadraReservada(idr, sessao);
 
-  const titulo = `Reserva #${String(id).padStart(4, '0')}`;
+  // Sem login, volta para a tela de login
+  if (!sessao) return <Redirect href="/" />;
 
-  const voltar = () => (router.canGoBack() ? router.back() : router.replace('/'));
+  const titulo = `Reserva #${String(idr).padStart(4, '0')}`;
+
+  const voltar = () => (router.canGoBack() ? router.back() : router.replace('/reservas'));
 
   const executarCancelamento = async () => {
     const resultado = await cancelar();
@@ -29,7 +40,12 @@ export default function ReservaDetalheScreen() {
     ]);
   };
 
+  // Alert com botões não funciona no navegador, então usamos confirm lá
   const confirmarCancelamento = () => {
+    if (Platform.OS === 'web') {
+      if (window.confirm('Deseja cancelar este agendamento?')) executarCancelamento();
+      return;
+    }
     Alert.alert(
       'Cancelar agendamento',
       'O horário voltará a ficar disponível para outras pessoas. Deseja cancelar?',
@@ -40,81 +56,74 @@ export default function ReservaDetalheScreen() {
     );
   };
 
+  if (carregando || erro) {
+    return (
+      <View style={styles.tela}>
+        <Header titulo={titulo} />
+        <View style={styles.centro}>
+          {carregando ? (
+            <ActivityIndicator color="#284066" />
+          ) : (
+            <Pressable onPress={recarregar}>
+              <Text style={styles.erro}>{erro} Toque para tentar de novo.</Text>
+            </Pressable>
+          )}
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.tela}>
       <Header titulo={titulo} />
 
-      {carregando && (
-        <View style={styles.centro}>
-          <ActivityIndicator color="#284066" />
-        </View>
-      )}
+      <ScrollView contentContainerStyle={[styles.conteudo, { paddingBottom: insets.bottom + 40 }]}>
+        <ReservaStatusBanner status={reserva.status} />
+        <CodigoAcessoCard codigo={reserva.codigoAcesso} />
+        <QuadraResumoCard horario={reserva.horario} />
+        <ParticipantesCard participantes={participantes} />
 
-      {erro && !carregando && (
-        <View style={styles.centro}>
-          <Text style={styles.erro}>{erro}</Text>
-          <Pressable onPress={recarregar} style={styles.botaoTentar}>
-            <Text style={styles.textoTentar}>Tentar de novo</Text>
-          </Pressable>
-        </View>
-      )}
-
-      {reserva && !carregando && (
-        <ScrollView contentContainerStyle={styles.conteudo}>
-          <ReservaStatusBanner status={reserva.status} />
-          <CodigoAcessoCard codigo={reserva.codigoAcesso} />
-          <QuadraResumoCard
-            quadra={reserva.quadra}
-            data={reserva.data}
-            horaInicio={reserva.horaInicio}
-            horaFim={reserva.horaFim}
-          />
-          <ParticipantesCard participantes={reserva.participantes} />
-
-          {reserva.status === 'ATIVA' && (
-            <>
-              <Pressable
-                onPress={confirmarCancelamento}
-                disabled={!podeCancelar || cancelando}
-                style={[styles.botaoCancelar, !podeCancelar && styles.botaoDesativado]}
-              >
-                {cancelando ? (
-                  <ActivityIndicator color="#E53935" />
-                ) : (
-                  <>
-                    <MaterialCommunityIcons
-                      name="calendar-remove"
-                      size={22}
-                      color={podeCancelar ? '#E53935' : '#9A9A9A'}
-                    />
-                    <Text style={[styles.textoCancelar, !podeCancelar && styles.textoDesativado]}>
-                      Cancelar Agendamento
-                    </Text>
-                  </>
-                )}
-              </Pressable>
-
-              {!podeCancelar && (
-                <Text style={styles.dica}>
-                  O cancelamento só é possível até 2 horas antes do horário. Em caso de necessidade,
-                  entre em contato com o suporte.
-                </Text>
+        {reserva.status === 'ATIVA' && (
+          <>
+            <Pressable
+              onPress={confirmarCancelamento}
+              disabled={!podeCancelar || cancelando}
+              style={[styles.botaoCancelar, !podeCancelar && styles.botaoDesativado]}
+            >
+              {cancelando ? (
+                <ActivityIndicator color="#E53935" />
+              ) : (
+                <>
+                  <MaterialCommunityIcons
+                    name="calendar-remove"
+                    size={22}
+                    color={podeCancelar ? '#E53935' : '#9A9A9A'}
+                  />
+                  <Text style={[styles.textoCancelar, !podeCancelar && styles.textoDesativado]}>
+                    Cancelar Agendamento
+                  </Text>
+                </>
               )}
-            </>
-          )}
-        </ScrollView>
-      )}
+            </Pressable>
+
+            {!podeCancelar && (
+              <Text style={styles.dica}>
+                O cancelamento só é possível até 2 horas antes do horário. Em caso de necessidade,
+                entre em contato com o suporte.
+              </Text>
+            )}
+          </>
+        )}
+      </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   tela: { flex: 1, backgroundColor: '#E5E5E5' },
-  conteudo: { padding: 20, paddingBottom: 120, gap: 24 },
-  centro: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 16 },
-  erro: { color: '#E53935', fontSize: 15, textAlign: 'center' },
-  botaoTentar: { backgroundColor: '#284066', borderRadius: 16, paddingVertical: 12, paddingHorizontal: 24 },
-  textoTentar: { color: '#fff', fontSize: 15, fontWeight: '600' },
+  conteudo: { padding: 20, gap: 24 },
+  centro: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
+  erro: { color: '#E53935', fontSize: 14, textAlign: 'center' },
   botaoCancelar: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10,
     backgroundColor: '#E3B4B2', borderRadius: 20, paddingVertical: 20,
@@ -124,4 +133,3 @@ const styles = StyleSheet.create({
   textoDesativado: { color: '#9A9A9A' },
   dica: { fontSize: 13, color: '#777', textAlign: 'center', marginTop: -8 },
 });
-

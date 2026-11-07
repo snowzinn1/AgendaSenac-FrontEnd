@@ -75,8 +75,6 @@ export default function TabsLayout() {
           ),
         }}
       />
-      <Tabs.Screen name="reserva/[idr]" options={{ href: null }} />
-
       {/* Fica dentro do grupo para manter a barra visível, mas sem aparecer como aba */}
       <Tabs.Screen name="adicionar-quadra" options={{ href: null }} />
     </Tabs>
