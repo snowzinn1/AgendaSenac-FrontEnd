@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Redirect, Tabs } from "expo-router";
 import { StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { ehAdmin, useSessao } from "../../Config/sessao";
+import { ehAdmin, useSessao } from "../../features/auth/sessao";
 
 // Ícone da barra: círculo azul quando a aba está ativa
 function IconeAba({ nome, focused }) {

@@ -1,5 +1,5 @@
 import { Stack } from 'expo-router';
-import { SessaoProvider } from '../Config/sessao';
+import { SessaoProvider } from '../features/auth/sessao';
 
 export default function RootLayout() {
   return (
