@@ -1,21 +1,21 @@
-// SCREEN: Detalhes da Reserva. Recebe ?horarioId=... na rota.
+// SCREEN: Nova reserva (detalhes do horário escolhido + participantes + confirmar). Recebe ?horarioId=... na rota.
 import { Ionicons } from '@expo/vector-icons';
 import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
 import {
   ActivityIndicator, KeyboardAvoidingView, Platform,
   Pressable, ScrollView, StyleSheet, Text, View,
 } from 'react-native';
-import { FotoQuadra } from '../components/FotoQuadra';
+import { FotoQuadra } from '@/features/quadras/components/FotoQuadra';
+import Header from '@/shared/components/Header';
 import { ParticipanteCard } from '../components/ParticipanteCard';
-import { useSessao } from '../auth/sessao';
+import { useSessao } from '@/features/auth/sessao';
 import { useDetalhesReserva } from '../hooks/useDetalhesReserva';
-import useUsuario from '../hooks/useUsuario';
-import Header from '../../shared/components/Header';
-import { ocultarCpf } from '../../shared/Utils/cpf';
-import { formatarData, formatarHora } from '../../shared/Utils/formatadores';
+import useUsuario from '@/features/perfil/hooks/useUsuario';
+import { ocultarCpf } from '@/shared/Utils/cpf';
+import { formatarData, formatarHora } from '@/shared/Utils/formatadores';
 
 
-export default function DetalhesReserva() {
+export default function NovaReservaScreen() {
   const router = useRouter();
   const { horarioId } = useLocalSearchParams();
 
