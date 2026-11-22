@@ -26,7 +26,7 @@ export async function criarReserva(dados) {
   return data;
 }
 
-// Só com 2h ou mais de antecedência (regra do back). Responde 204.
+// Só com 2h ou mais de antecedência (regra do back). 
 export async function cancelarReserva(id) {
   await api.patch(`/reservas/${id}/cancelar`);
 }
@@ -40,8 +40,7 @@ export async function adicionarParticipante(reservaId, participante) {
   await api.post(`/reservas/${reservaId}/participantes`, participante);
 }
 
-// Participantes de UMA reserva (além do responsável).
-// ATENÇÃO: confirme esta rota no ReservaController. Se ela não existir, a tela mostra só o responsável.
+
 export async function listarParticipantes(reservaId) {
   const { data } = await api.get(`/reservas/${reservaId}/participantes`);
   return data;
